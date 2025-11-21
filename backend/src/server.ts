@@ -89,6 +89,11 @@ app.use(errorHandler);
 // Initialize services
 const startServer = async (): Promise<void> => {
   try {
+    // Fix for "self-signed certificate in certificate chain" error in development
+    if (config.env === 'development') {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+
     // Connect to database
     await connectDatabase();
 

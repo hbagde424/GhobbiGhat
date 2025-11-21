@@ -43,7 +43,7 @@ export default function VendorEarnings() {
   const fetchEarningsData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch vendor dashboard for earnings
       const dashboardResponse = (await vendorAPI.getDashboard()) as any;
       const stats = dashboardResponse.data?.stats ?? dashboardResponse.stats ?? {};
@@ -65,20 +65,20 @@ export default function VendorEarnings() {
             const orderDate = new Date(order.createdAt);
             return orderDate >= thisMonthStart && order.status === 'delivered';
           })
-          .reduce((sum: number, order: any) => sum + (order.vendorEarnings || 0), 0),
+          .reduce((sum: number, order: any) => sum + (order.vendorEarning || 0), 0),
       };
 
       setEarnings(earningsData);
 
       // Format transactions
       const transactionList = orders
-        .filter((order: any) => order.vendorEarnings > 0)
+        .filter((order: any) => (order.vendorEarning || 0) > 0)
         .map((order: any) => ({
           _id: order._id,
           orderNumber: order.orderNumber,
           amount: order.totalAmount,
           commission: order.commissionAmount || 0,
-          vendorEarnings: order.vendorEarnings || 0,
+          vendorEarnings: order.vendorEarning || 0,
           status: order.status,
           date: order.createdAt,
         }))
@@ -95,20 +95,20 @@ export default function VendorEarnings() {
 
   const filteredTransactions = transactions.filter(transaction => {
     if (filterPeriod === 'all') return true;
-    
+
     const transactionDate = new Date(transaction.date);
     const now = new Date();
-    
+
     if (filterPeriod === 'today') {
       return transactionDate.toDateString() === now.toDateString();
     } else if (filterPeriod === 'week') {
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       return transactionDate >= weekAgo;
     } else if (filterPeriod === 'month') {
-      return transactionDate.getMonth() === now.getMonth() && 
-             transactionDate.getFullYear() === now.getFullYear();
+      return transactionDate.getMonth() === now.getMonth() &&
+        transactionDate.getFullYear() === now.getFullYear();
     }
-    
+
     return true;
   });
 

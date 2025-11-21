@@ -22,6 +22,8 @@ import VendorDashboard from "./pages/vendor/Dashboard";
 import VendorOrders from "./pages/vendor/Orders";
 import VendorEarnings from "./pages/vendor/Earnings";
 import VendorSetup from "./pages/vendor/Setup";
+import VendorProfile from "./pages/vendor/Profile";
+import VendorReviews from "./pages/vendor/Reviews";
 
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -70,6 +72,8 @@ const App = () => (
                 <Route path="/vendor/dashboard" element={<DashboardLayout><VendorDashboard /></DashboardLayout>} />
                 <Route path="/vendor/orders" element={<DashboardLayout><VendorOrders /></DashboardLayout>} />
                 <Route path="/vendor/earnings" element={<DashboardLayout><VendorEarnings /></DashboardLayout>} />
+                <Route path="/vendor/profile" element={<DashboardLayout><VendorProfile /></DashboardLayout>} />
+                <Route path="/vendor/reviews" element={<DashboardLayout><VendorReviews /></DashboardLayout>} />
               </Route>
 
               {/* Protected User Routes */}
@@ -80,12 +84,12 @@ const App = () => (
               </Route>
 
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </ThemeProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+            </Routes >
+          </ThemeProvider >
+        </AuthProvider >
+      </BrowserRouter >
+    </TooltipProvider >
+  </QueryClientProvider >
 );
 
 export default App;

@@ -19,6 +19,16 @@ interface EmailOptions {
 }
 
 export const sendEmail = async (options: EmailOptions): Promise<void> => {
+  // Check if SMTP credentials are provided
+  if (!config.smtp.user || !config.smtp.password) {
+    console.log('⚠️ SMTP credentials missing. Skipping email send.');
+    console.log('--- Email Preview ---');
+    console.log(`To: ${options.to}`);
+    console.log(`Subject: ${options.subject}`);
+    console.log('---------------------');
+    return;
+  }
+
   try {
     await transporter.sendMail({
       from: `${config.smtp.fromName} <${config.smtp.from}>`,
@@ -30,7 +40,10 @@ export const sendEmail = async (options: EmailOptions): Promise<void> => {
     console.log(`Email sent to ${options.to}`);
   } catch (error) {
     console.error('Error sending email:', error);
-    throw error;
+    // Don't throw error in development to prevent app crash
+    if (config.env === 'production') {
+      throw error;
+    }
   }
 };
 

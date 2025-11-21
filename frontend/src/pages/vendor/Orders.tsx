@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package, Check, X, Clock, Search, Filter } from 'lucide-react';
+import { Package, Check, X, Clock, Search, Filter, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,16 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { orderAPI } from '@/services/order.service';
 import { toast } from 'sonner';
 
@@ -28,6 +38,14 @@ interface Order {
   createdAt: string;
 }
 
+interface UpdateConfirmation {
+  orderId: string;
+  newStatus: string;
+  orderNumber: string;
+  customerName: string;
+  currentStatus: string;
+}
+
 export default function VendorOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
@@ -36,6 +54,7 @@ export default function VendorOrders() {
   const [statusTab, setStatusTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [updateConfirmation, setUpdateConfirmation] = useState<UpdateConfirmation | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -94,11 +113,24 @@ export default function VendorOrders() {
     setFilteredOrders(filtered);
   };
 
-  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+  const initiateStatusUpdate = (order: Order, newStatus: string) => {
+    setUpdateConfirmation({
+      orderId: order._id,
+      newStatus,
+      orderNumber: order.orderNumber,
+      customerName: order.user?.name || 'Unknown',
+      currentStatus: order.status,
+    });
+  };
+
+  const confirmStatusUpdate = async () => {
+    if (!updateConfirmation) return;
+
     try {
-      await orderAPI.updateOrderStatus(orderId, newStatus);
-      toast.success('Order status updated successfully');
+      await orderAPI.updateOrderStatus(updateConfirmation.orderId, updateConfirmation.newStatus);
+      toast.success(`Order ${updateConfirmation.orderNumber} updated to ${getStatusLabel(updateConfirmation.newStatus)}`);
       fetchOrders();
+      setUpdateConfirmation(null);
       setShowOrderDialog(false);
     } catch (error: any) {
       console.error('Failed to update status:', error);
@@ -106,13 +138,12 @@ export default function VendorOrders() {
     }
   };
 
-  const handleAcceptOrder = async (orderId: string) => {
-    await handleStatusUpdate(orderId, 'accepted');
+  const handleAcceptOrder = (order: Order) => {
+    initiateStatusUpdate(order, 'accepted');
   };
 
-  const handleRejectOrder = async (orderId: string) => {
-    if (!confirm('Are you sure you want to reject this order?')) return;
-    await handleStatusUpdate(orderId, 'cancelled');
+  const handleRejectOrder = (order: Order) => {
+    initiateStatusUpdate(order, 'cancelled');
   };
 
   const viewOrderDetails = (order: Order) => {
@@ -246,7 +277,7 @@ export default function VendorOrders() {
                               <>
                                 <Button
                                   size="sm"
-                                  onClick={() => handleAcceptOrder(order._id)}
+                                  onClick={() => handleAcceptOrder(order)}
                                   className="bg-green-600 hover:bg-green-700"
                                 >
                                   <Check className="mr-1 h-4 w-4" />
@@ -255,7 +286,7 @@ export default function VendorOrders() {
                                 <Button
                                   size="sm"
                                   variant="destructive"
-                                  onClick={() => handleRejectOrder(order._id)}
+                                  onClick={() => handleRejectOrder(order)}
                                 >
                                   <X className="mr-1 h-4 w-4" />
                                   Reject
@@ -266,7 +297,7 @@ export default function VendorOrders() {
                             {getNextStatus(order.status) && (
                               <Button
                                 size="sm"
-                                onClick={() => handleStatusUpdate(order._id, getNextStatus(order.status)!)}
+                                onClick={() => initiateStatusUpdate(order, getNextStatus(order.status)!)}
                               >
                                 Update to {getStatusLabel(getNextStatus(order.status)!)}
                               </Button>
@@ -349,6 +380,59 @@ export default function VendorOrders() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Status Update Confirmation Dialog */}
+        <AlertDialog open={!!updateConfirmation} onOpenChange={(open) => !open && setUpdateConfirmation(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                Confirm Status Update
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to update this order?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {updateConfirmation && (
+              <div className="py-4 space-y-3 bg-gray-50 p-4 rounded-md border">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Order Number:</span>
+                  <span className="font-medium">{updateConfirmation.orderNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">Customer:</span>
+                  <span className="font-medium">{updateConfirmation.customerName}</span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t">
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">Current Status</span>
+                    <Badge variant="outline" className="mt-1 w-fit">
+                      {getStatusLabel(updateConfirmation.currentStatus)}
+                    </Badge>
+                  </div>
+                  <div className="text-gray-400">→</div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-gray-500">New Status</span>
+                    <Badge className={`mt-1 ${getStatusColor(updateConfirmation.newStatus)}`}>
+                      {getStatusLabel(updateConfirmation.newStatus)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmStatusUpdate}
+                className={updateConfirmation?.newStatus === 'cancelled' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}
+              >
+                Confirm Update
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
