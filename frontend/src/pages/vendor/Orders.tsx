@@ -50,7 +50,15 @@ export default function VendorOrders() {
       setLoading(true);
       const response = (await orderAPI.getVendorOrders({})) as any;
       const list = response.data?.orders ?? response.orders ?? [];
-      setOrders(list);
+
+      // Map backend data to frontend interface
+      const mappedList = list.map((order: any) => ({
+        ...order,
+        user: order.userId || { name: 'Unknown', phone: '' },
+        vendorEarnings: order.vendorEarning || 0,
+      }));
+
+      setOrders(mappedList);
     } catch (error: any) {
       console.error('Failed to fetch orders:', error);
       toast.error(error.response?.data?.message || 'Failed to load orders');
