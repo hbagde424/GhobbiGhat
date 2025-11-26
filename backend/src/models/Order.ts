@@ -13,11 +13,11 @@ export interface IOrder extends Document {
   orderNumber: string;
   userId: mongoose.Types.ObjectId;
   vendorId: mongoose.Types.ObjectId;
-  
+
   // Service Details
   serviceType: mongoose.Types.ObjectId;
   items: IOrderItem[];
-  
+
   // Pickup & Delivery
   pickupAddress: {
     fullAddress: string;
@@ -41,15 +41,15 @@ export interface IOrder extends Document {
       longitude: number;
     };
   };
-  
+
   pickupDate: Date;
   pickupTimeSlot: string;
   deliveryDate?: Date;
   deliveryTimeSlot?: string;
-  
+
   // Special Instructions
   specialInstructions?: string;
-  
+
   // Status Tracking
   status: 'pending' | 'accepted' | 'picked_up' | 'in_progress' | 'ready' | 'out_for_delivery' | 'delivered' | 'cancelled';
   statusHistory: {
@@ -57,7 +57,7 @@ export interface IOrder extends Document {
     timestamp: Date;
     notes?: string;
   }[];
-  
+
   // Payment
   subtotal: number;
   tax: number;
@@ -70,25 +70,31 @@ export interface IOrder extends Document {
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
   razorpaySignature?: string;
-  
+
   // Commission
   commissionRate: number;
   commissionAmount: number;
   vendorEarning: number;
-  
-  // Photos (after pickup)
-  clothesPhotos: string[];
-  
+
+  // Photos
+  clothesPhotos: string[]; // Legacy field - kept for backward compatibility
+  pickupPhotos: string[]; // Photos taken during pickup
+  deliveryPhotos: string[]; // Photos taken during delivery
+
+  // Item Count Tracking
+  totalItemsPickedUp: number; // Total number of clothes picked up
+  totalItemsReturned: number; // Total number of clothes returned
+
   // Ratings & Review
   rating?: number;
   review?: string;
   reviewDate?: Date;
-  
+
   // Cancellation
   cancellationReason?: string;
   cancelledBy?: 'user' | 'vendor' | 'admin';
   cancelledAt?: Date;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -234,7 +240,17 @@ const orderSchema = new Schema<IOrder>(
       type: Number,
       required: true,
     },
-    clothesPhotos: [String],
+    clothesPhotos: [String], // Legacy field
+    pickupPhotos: [String],
+    deliveryPhotos: [String],
+    totalItemsPickedUp: {
+      type: Number,
+      default: 0,
+    },
+    totalItemsReturned: {
+      type: Number,
+      default: 0,
+    },
     rating: {
       type: Number,
       min: 1,

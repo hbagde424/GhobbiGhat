@@ -393,3 +393,164 @@ export const addOrderItems = async (
     next(error);
   }
 };
+
+// Upload Pickup Photos (Vendor - during pickup)
+export const uploadPickupPhotos = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { orderId } = req.params;
+    const { totalItemsPickedUp } = req.body;
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      throw new ValidationError('No photos uploaded');
+    }
+
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+    if (!vendor) {
+      throw new NotFoundError('Vendor profile not found');
+    }
+
+    const order = await Order.findOne({
+      _id: orderId,
+      vendorId: vendor._id,
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    // Import cloudinary service
+    const { uploadPickupPhotos: uploadPhotos } = await import('../services/cloudinary.service');
+
+    // Upload photos to Cloudinary
+    const photoUrls = await uploadPhotos(files, order.orderNumber);
+
+    // Update order with pickup photos
+    order.pickupPhotos = [...(order.pickupPhotos || []), ...photoUrls];
+    order.totalItemsPickedUp = parseInt(totalItemsPickedUp) || 0;
+
+    // Update status to picked_up if not already
+    if (order.status === 'accepted') {
+      order.status = 'picked_up';
+      order.statusHistory.push({
+        status: 'picked_up',
+        timestamp: new Date(),
+        notes: `Picked up ${totalItemsPickedUp} items`,
+      });
+    }
+
+    await order.save();
+
+    // Send notification to user
+    const user = await import('../models/User').then(m => m.default.findById(order.userId));
+    if (user) {
+      await createNotification({
+        userId: user._id as any,
+        type: 'order_update',
+        title: 'Order Picked Up',
+        message: `Your order ${order.orderNumber} has been picked up. ${totalItemsPickedUp} items collected.`,
+        data: { orderId: order._id },
+        link: `/orders/${order._id}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Pickup photos uploaded successfully',
+      data: {
+        order,
+        uploadedPhotos: photoUrls.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Upload Delivery Photos (Vendor - during delivery)
+export const uploadDeliveryPhotos = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { orderId } = req.params;
+    const { totalItemsReturned } = req.body;
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      throw new ValidationError('No photos uploaded');
+    }
+
+    const vendor = await Vendor.findOne({ userId: req.user.id });
+    if (!vendor) {
+      throw new NotFoundError('Vendor profile not found');
+    }
+
+    const order = await Order.findOne({
+      _id: orderId,
+      vendorId: vendor._id,
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found');
+    }
+
+    // Import cloudinary service
+    const { uploadDeliveryPhotos: uploadPhotos } = await import('../services/cloudinary.service');
+
+    // Upload photos to Cloudinary
+    const photoUrls = await uploadPhotos(files, order.orderNumber);
+
+    // Update order with delivery photos
+    order.deliveryPhotos = [...(order.deliveryPhotos || []), ...photoUrls];
+    order.totalItemsReturned = parseInt(totalItemsReturned) || 0;
+
+    // Update status to delivered
+    if (order.status === 'out_for_delivery') {
+      order.status = 'delivered';
+      order.deliveryDate = new Date();
+      order.statusHistory.push({
+        status: 'delivered',
+        timestamp: new Date(),
+        notes: `Delivered ${totalItemsReturned} items`,
+      });
+
+      // Update vendor stats
+      vendor.completedOrders += 1;
+      vendor.pendingEarnings += order.vendorEarning;
+      await vendor.save();
+    }
+
+    await order.save();
+
+    // Send notification to user
+    const user = await import('../models/User').then(m => m.default.findById(order.userId));
+    if (user) {
+      await createNotification({
+        userId: user._id as any,
+        type: 'order_update',
+        title: 'Order Delivered',
+        message: `Your order ${order.orderNumber} has been delivered. ${totalItemsReturned} items returned.`,
+        data: { orderId: order._id },
+        link: `/orders/${order._id}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Delivery photos uploaded successfully',
+      data: {
+        order,
+        uploadedPhotos: photoUrls.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

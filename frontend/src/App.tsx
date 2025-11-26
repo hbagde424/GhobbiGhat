@@ -15,6 +15,7 @@ import CreateOrder from "./pages/CreateOrder";
 // User Pages
 import UserDashboard from "./pages/user/Dashboard";
 import UserOrders from "./pages/user/Orders";
+import UserOrderDetails from "./pages/user/OrderDetails";
 import UserProfile from "./pages/user/Profile";
 
 // Vendor Pages
@@ -80,6 +81,7 @@ const App = () => (
               <Route element={<ProtectedRoute />}>
                 <Route path="/user/dashboard" element={<DashboardLayout><UserDashboard /></DashboardLayout>} />
                 <Route path="/user/orders" element={<DashboardLayout><UserOrders /></DashboardLayout>} />
+                <Route path="/user/orders/:orderId" element={<DashboardLayout><UserOrderDetails /></DashboardLayout>} />
                 <Route path="/user/profile" element={<DashboardLayout><UserProfile /></DashboardLayout>} />
               </Route>
 

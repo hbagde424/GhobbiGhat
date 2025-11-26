@@ -64,4 +64,20 @@ export const orderAPI = {
   addItems: async (orderId: string, items: any[]) => {
     return await apiClient.put(`/orders/${orderId}/items`, { items });
   },
+
+  uploadPickupPhotos: async (orderId: string, formData: FormData) => {
+    return await apiClient.post(`/orders/${orderId}/pickup-photos`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  uploadDeliveryPhotos: async (orderId: string, formData: FormData) => {
+    return await apiClient.post(`/orders/${orderId}/delivery-photos`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 };

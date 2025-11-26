@@ -2,7 +2,16 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '../.env') });
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '../../.env') });
+
+// Debug: Check if .env is loaded
+if (!process.env.CLOUDINARY_API_KEY) {
+  console.warn('WARNING: CLOUDINARY_API_KEY is not set. Check your .env file location and content.');
+  console.log('Looking for .env at:', path.join(__dirname, '../../.env'));
+} else {
+  console.log('Cloudinary configuration loaded.');
+}
 
 export const config = {
   // Server

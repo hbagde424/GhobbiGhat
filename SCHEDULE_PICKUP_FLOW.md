@@ -248,10 +248,14 @@ After order creation, the order goes through these statuses:
 1. **pending** - Order placed, waiting for vendor acceptance
 2. **accepted** - Vendor accepted the order
 3. **picked_up** - Clothes picked up from customer
+   - ✅ Vendor uploads pickup photos
+   - ✅ Vendor enters total items collected
 4. **in_progress** - Laundry work in progress
 5. **ready** - Clothes ready for delivery
 6. **out_for_delivery** - Out for delivery
 7. **delivered** - Order completed
+   - ✅ Vendor uploads delivery photos
+   - ✅ Vendor enters total items returned
 8. **cancelled** - Order cancelled (by user/vendor/admin)
 
 ---

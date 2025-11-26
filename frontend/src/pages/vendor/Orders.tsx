@@ -20,6 +20,9 @@ import {
 import { orderAPI } from '@/services/order.service';
 import { toast } from 'sonner';
 
+import { PickupConfirmationDialog } from '@/components/PickupConfirmationDialog';
+import { DeliveryConfirmationDialog } from '@/components/DeliveryConfirmationDialog';
+
 interface Order {
   _id: string;
   orderNumber: string;
@@ -36,6 +39,9 @@ interface Order {
   deliveryAddress: any;
   items: any[];
   createdAt: string;
+  totalItemsPickedUp?: number;
+  pickupPhotos?: string[];
+  deliveryPhotos?: string[];
 }
 
 interface UpdateConfirmation {
@@ -55,6 +61,10 @@ export default function VendorOrders() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [updateConfirmation, setUpdateConfirmation] = useState<UpdateConfirmation | null>(null);
+
+  // New dialog states
+  const [pickupOrder, setPickupOrder] = useState<Order | null>(null);
+  const [deliveryOrder, setDeliveryOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -114,6 +124,18 @@ export default function VendorOrders() {
   };
 
   const initiateStatusUpdate = (order: Order, newStatus: string) => {
+    // Handle special flows for pickup and delivery
+    if (newStatus === 'picked_up') {
+      setPickupOrder(order);
+      return;
+    }
+
+    if (newStatus === 'delivered') {
+      setDeliveryOrder(order);
+      return;
+    }
+
+    // Standard status update
     setUpdateConfirmation({
       orderId: order._id,
       newStatus,
@@ -356,6 +378,33 @@ export default function VendorOrders() {
                   <p className="text-sm">{selectedOrder.deliveryAddress?.city}, {selectedOrder.deliveryAddress?.state} - {selectedOrder.deliveryAddress?.pincode}</p>
                 </div>
 
+                {/* Photos Section */}
+                {(selectedOrder.pickupPhotos?.length || 0) > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Pickup Photos ({selectedOrder.totalItemsPickedUp} items)</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {selectedOrder.pickupPhotos?.map((photo, i) => (
+                        <a key={i} href={photo} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={photo} alt={`Pickup ${i + 1}`} className="w-full h-20 object-cover rounded border" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {(selectedOrder.deliveryPhotos?.length || 0) > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Delivery Photos ({selectedOrder.totalItemsPickedUp} items returned)</h4>
+                    <div className="grid grid-cols-4 gap-2">
+                      {selectedOrder.deliveryPhotos?.map((photo, i) => (
+                        <a key={i} href={photo} target="_blank" rel="noopener noreferrer" className="block">
+                          <img src={photo} alt={`Delivery ${i + 1}`} className="w-full h-20 object-cover rounded border" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <h4 className="font-semibold mb-2">Order Items</h4>
                   <div className="space-y-2">
@@ -433,6 +482,35 @@ export default function VendorOrders() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Pickup Confirmation Dialog */}
+        {pickupOrder && (
+          <PickupConfirmationDialog
+            open={!!pickupOrder}
+            onOpenChange={(open) => !open && setPickupOrder(null)}
+            orderId={pickupOrder._id}
+            orderNumber={pickupOrder.orderNumber}
+            onSuccess={() => {
+              setPickupOrder(null);
+              fetchOrders();
+            }}
+          />
+        )}
+
+        {/* Delivery Confirmation Dialog */}
+        {deliveryOrder && (
+          <DeliveryConfirmationDialog
+            open={!!deliveryOrder}
+            onOpenChange={(open) => !open && setDeliveryOrder(null)}
+            orderId={deliveryOrder._id}
+            orderNumber={deliveryOrder.orderNumber}
+            totalItemsPickedUp={deliveryOrder.totalItemsPickedUp || 0}
+            onSuccess={() => {
+              setDeliveryOrder(null);
+              fetchOrders();
+            }}
+          />
+        )}
       </div>
     </div>
   );
