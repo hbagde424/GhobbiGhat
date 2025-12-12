@@ -60,7 +60,7 @@ export default function VendorDashboard() {
       
       const recent = orders.map((order: any) => ({
         _id: order._id,
-        orderNumber: order.orderNumber,
+        orderNumber: order.orderNumber, 
         customerName: order.user?.name || 'Unknown',
         status: order.status,
         totalAmount: order.totalAmount,
