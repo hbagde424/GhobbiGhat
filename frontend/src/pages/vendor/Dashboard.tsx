@@ -48,7 +48,7 @@ export default function VendorDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-
+      
       // Fetch vendor dashboard
       const dashboardResponse = (await vendorAPI.getDashboard()) as any;
       // backend returns { success: true, data: { stats } }
@@ -57,17 +57,17 @@ export default function VendorDashboard() {
       // Fetch recent orders
       const ordersResponse = (await orderAPI.getVendorOrders({ limit: 5 })) as any;
       const orders = ordersResponse.data?.orders ?? ordersResponse.orders ?? [];
-
+      
       const recent = orders.map((order: any) => ({
         _id: order._id,
         orderNumber: order.orderNumber,
-        customerName: order.userId?.name || 'Unknown',
+        customerName: order.user?.name || 'Unknown',
         status: order.status,
         totalAmount: order.totalAmount,
-        vendorEarnings: order.vendorEarning || 0,
+        vendorEarnings: order.vendorEarnings || 0,
         createdAt: order.createdAt,
       }));
-
+      
       setRecentOrders(recent);
     } catch (error: any) {
       console.error('Failed to fetch dashboard data:', error);
@@ -92,7 +92,7 @@ export default function VendorDashboard() {
   };
 
   const getStatusLabel = (status: string) => {
-    return status.split('_').map(word =>
+    return status.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
@@ -185,7 +185,7 @@ export default function VendorDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
-                {stats.totalOrders > 0
+                {stats.totalOrders > 0 
                   ? ((stats.completedOrders / stats.totalOrders) * 100).toFixed(1)
                   : 0}%
               </div>
@@ -201,7 +201,7 @@ export default function VendorDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-blue-600">
-                ₹{stats.totalOrders > 0
+                ₹{stats.totalOrders > 0 
                   ? (stats.totalEarnings / stats.totalOrders).toFixed(2)
                   : 0}
               </div>

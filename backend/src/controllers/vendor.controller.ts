@@ -4,7 +4,6 @@ import User from '../models/User';
 import { AuthRequest } from '../middleware/auth';
 import { NotFoundError, ConflictError } from '../utils/errors';
 import { uploadMultipleToCloudinary } from '../services/upload.service';
-import { config } from '../config';
 
 // Register Vendor
 export const registerVendor = async (
@@ -30,10 +29,7 @@ export const registerVendor = async (
         documentUrls = await uploadMultipleToCloudinary(files, 'vendors/documents');
       } catch (uploadError) {
         console.warn('Document upload failed:', uploadError);
-        // Use placeholder URLs in development
-        documentUrls = files.map((_, index) =>
-          `https://placeholder.com/vendor-document-${index + 1}.pdf`
-        );
+        // Continue without documents in development
       }
     }
 
@@ -43,23 +39,12 @@ export const registerVendor = async (
       serviceAreas = serviceAreas.split(',').map((s: string) => s.trim()).filter(Boolean);
     }
 
-    // Ensure governmentIdDocument has a value (required field)
-    const governmentIdDocument = documentUrls[0] ||
-      'https://placeholder.com/vendor-government-id.pdf';
-
-    // Auto-approve in development if configured
-    const autoApprove = config.autoApproveVendors;
-
     const vendorData = {
       userId,
       ...req.body,
       serviceAreas,
-      governmentIdDocument,
+      governmentIdDocument: documentUrls[0] || '',
       businessProof: documentUrls[1] || undefined,
-      // Auto-approve if enabled
-      isApproved: autoApprove,
-      isVerified: autoApprove,
-      verificationStatus: autoApprove ? 'approved' : 'pending',
     };
 
     const vendor = await Vendor.create(vendorData);
@@ -67,13 +52,9 @@ export const registerVendor = async (
     // Update user role to vendor
     await User.findByIdAndUpdate(userId, { role: 'vendor' });
 
-    const message = autoApprove
-      ? 'Vendor registration successful! Your profile is now active.'
-      : 'Vendor registration submitted. Awaiting approval.';
-
     res.status(201).json({
       success: true,
-      message,
+      message: 'Vendor registration submitted. Awaiting approval.',
       data: { vendor },
     });
   } catch (error) {

@@ -1,7 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
+import { PremiumButton } from "@/components/ui/premium-button";
+import { InteractiveGrid } from "@/components/ui/interactive-grid";
 import { Navbar } from "@/components/Navbar";
-import { Sparkles, Shirt, Wind, Droplet, Shield } from "lucide-react";
+import { Sparkles, Shirt, Wind, Droplet, Shield, CheckCircle2, Zap } from "lucide-react";
 
 const Services = () => {
   const services = [
@@ -43,65 +44,107 @@ const Services = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      {/* Background Effects */}
+      <div className="absolute inset-0 opacity-20">
+        <InteractiveGrid rows={12} cols={16} />
+      </div>
+      <div className="absolute top-20 right-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 z-10">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4">Our Services</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <div className="inline-block mb-4">
+            <GlassCard className="px-4 py-2 inline-flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">Professional Services</span>
+            </GlassCard>
+          </div>
+          <h1 className="text-5xl lg:text-6xl font-bold mb-4">
+            Our <span className="gradient-text">Services</span>
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Professional laundry solutions tailored to your needs. From everyday wear to special
             garments, we've got you covered.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Services Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {services.map((service, index) => (
-            <Card key={index} className="hover:shadow-elevated transition-all duration-300 border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <div className="p-3 bg-gradient-hero rounded-lg w-fit mb-4 shadow-lg shadow-primary/20">
-                  <service.icon className="h-6 w-6 text-primary-foreground" />
+            <GlassCard
+              key={index}
+              className="p-8 group gradient-border"
+              hover
+              glow
+            >
+              <div className="mb-6">
+                <div className="relative inline-block">
+                  <div className="absolute inset-0 bg-primary/30 rounded-2xl blur-xl group-hover:bg-primary/50 transition-all" />
+                  <div className="relative p-4 bg-gradient-to-br from-primary to-accent rounded-2xl">
+                    <service.icon className="h-8 w-8 text-white" />
+                  </div>
                 </div>
-                <CardTitle className="text-xl">{service.title}</CardTitle>
-                <CardDescription className="text-base">{service.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-2xl font-bold text-primary">{service.price}</div>
-                <ul className="space-y-3">
-                  {service.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px] shadow-primary" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/25"
-                  onClick={() => window.location.href = '/vendors'}
-                >
-                  Book Now
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+
+              <h3 className="text-2xl font-bold mb-3">{service.title}</h3>
+              <p className="text-muted-foreground mb-6">{service.description}</p>
+
+              <div className="text-3xl font-bold gradient-text mb-6">{service.price}</div>
+
+              <ul className="space-y-3 mb-8">
+                {service.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <PremiumButton
+                variant="premium"
+                className="w-full"
+                onClick={() => window.location.href = '/vendors'}
+              >
+                Book Now
+              </PremiumButton>
+            </GlassCard>
           ))}
         </div>
 
         {/* Add-on Services */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold mb-8 text-center">Add-On Services</h2>
+          <div className="text-center mb-12">
+            <div className="inline-block mb-4">
+              <GlassCard className="px-4 py-2 inline-flex items-center gap-2">
+                <Zap className="h-4 w-4 text-accent" />
+                <span className="text-sm font-medium">Enhance Your Experience</span>
+              </GlassCard>
+            </div>
+            <h2 className="text-4xl font-bold mb-4">
+              Add-On <span className="gradient-text">Services</span>
+            </h2>
+          </div>
+
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: "Express Delivery", desc: "Get it in 12 hours" },
-              { name: "Eco-Friendly", desc: "Green cleaning products" },
-              { name: "Fabric Softener", desc: "Extra soft finish" },
-              { name: "Sanitization", desc: "99.9% germ-free" },
+              { name: "Express Delivery", desc: "Get it in 12 hours", icon: "⚡" },
+              { name: "Eco-Friendly", desc: "Green cleaning products", icon: "🌿" },
+              { name: "Fabric Softener", desc: "Extra soft finish", icon: "✨" },
+              { name: "Sanitization", desc: "99.9% germ-free", icon: "🛡️" },
             ].map((addon, idx) => (
-              <Card key={idx} className="text-center">
-                <CardContent className="pt-6">
-                  <h3 className="font-semibold mb-2">{addon.name}</h3>
-                  <p className="text-sm text-muted-foreground">{addon.desc}</p>
-                </CardContent>
-              </Card>
+              <GlassCard
+                key={idx}
+                className="p-6 text-center hover-lift shimmer"
+                hover
+              >
+                <div className="text-4xl mb-3">{addon.icon}</div>
+                <h3 className="font-semibold text-lg mb-2">{addon.name}</h3>
+                <p className="text-sm text-muted-foreground">{addon.desc}</p>
+              </GlassCard>
             ))}
           </div>
         </div>
