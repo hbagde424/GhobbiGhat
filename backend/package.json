@@ -10,6 +10,8 @@
     "lint": "eslint src/**/*.ts",
     "test": "jest",
     "seed:services": "ts-node seed-services.ts",
+    "seed:images": "ts-node seed-vendor-images.ts",
+    "check:images": "ts-node check-vendor-images.ts",
     "approve:vendors": "ts-node approve-vendors.ts"
   },
   "keywords": [

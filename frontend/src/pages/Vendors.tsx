@@ -4,10 +4,155 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Navbar } from "@/components/Navbar";
-import { MapPin, Star, Clock, Phone, Package } from "lucide-react";
+import { MapPin, Star, Clock, Phone, Package, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { vendorAPI, Vendor } from "@/services/vendor.service";
 import { toast } from "sonner";
+
+// Vendor Card Component with Image Gallery
+const VendorCard = ({ vendor, navigate }: { vendor: Vendor; navigate: any }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageError, setImageError] = useState(false);
+
+  const images = vendor.gallery && vendor.gallery.length > 0 ? vendor.gallery : [];
+  const currentImage = images[currentImageIndex];
+
+  // Debug logging
+  useEffect(() => {
+    console.log(`Vendor: ${vendor.businessName}`, {
+      hasGallery: !!vendor.gallery,
+      galleryLength: vendor.gallery?.length || 0,
+      gallery: vendor.gallery,
+      currentImage,
+    });
+  }, [vendor, currentImage]);
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  return (
+    <Card
+      className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-col h-full hover:scale-105 transform"
+      onClick={() => navigate(`/vendor/${vendor._id}`)}
+    >
+      {/* Image Section */}
+      <div className="relative w-full h-48 bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden group">
+        {currentImage && !imageError ? (
+          <>
+            <img
+              src={currentImage}
+              alt={vendor.businessName}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+              onError={() => {
+                console.error('Image failed to load:', currentImage);
+                setImageError(true);
+              }}
+              crossOrigin="anonymous"
+              loading="lazy"
+            />
+            {/* Image Navigation */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                {/* Image Counter */}
+                <div className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full">
+                  {currentImageIndex + 1}/{images.length}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+            <div className="text-center">
+              <ImageIcon className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No image available</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Content Section */}
+      <CardHeader className="pb-3">
+        <div className="space-y-2">
+          <CardTitle className="text-lg line-clamp-2">{vendor.businessName}</CardTitle>
+          <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 fill-primary text-primary" />
+              <span className="font-semibold">{vendor.rating.toFixed(1)}</span>
+              <span className="text-muted-foreground">({vendor.totalReviews})</span>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="flex-1 flex flex-col space-y-3 pb-3">
+        {/* Location */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span className="line-clamp-1">{vendor.city}</span>
+        </div>
+
+        {/* Description */}
+        {vendor.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">{vendor.description}</p>
+        )}
+
+        {/* Services */}
+        {vendor.services && vendor.services.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {vendor.services.slice(0, 2).map((service: any, idx: number) => (
+              <Badge key={idx} variant="secondary" className="text-xs">
+                {service.name}
+              </Badge>
+            ))}
+            {vendor.services.length > 2 && (
+              <Badge variant="outline" className="text-xs">
+                +{vendor.services.length - 2}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Phone */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t">
+          <Phone className="h-4 w-4 flex-shrink-0" />
+          <span className="text-xs">{vendor.businessPhone}</span>
+        </div>
+      </CardContent>
+
+      {/* Button */}
+      <div className="px-6 pb-4">
+        <Button
+          className="w-full"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/order/${vendor._id}`);
+          }}
+        >
+          Schedule Pickup
+        </Button>
+      </div>
+    </Card>
+  );
+};
 
 const Vendors = () => {
   const navigate = useNavigate();
@@ -77,73 +222,24 @@ const Vendors = () => {
         </div>
 
         {/* Vendor Cards */}
-        {import.meta.env.DEV && rawResponse && (
-          <div className="mb-6 p-4 bg-white border rounded text-sm text-gray-600">
-            <div className="font-medium mb-2">[DEV] Vendors API response:</div>
-            <div className="mb-2">Count: {((rawResponse as any).data?.vendors ?? (rawResponse as any).vendors ?? []).length}</div>
-            <pre className="max-h-40 overflow-auto text-xs">{JSON.stringify(rawResponse, null, 2)}</pre>
-          </div>
-        )}
+       
+          {/* // <div className="mb-6 p-4 bg-white border rounded text-sm text-gray-600">
+          //   <div className="font-medium mb-2">[DEV] Vendors API response:</div>
+          //   <div className="mb-2">Count: {((rawResponse as any).data?.vendors ?? (rawResponse as any).vendors ?? []).length}</div>
+          //   <pre className="max-h-40 overflow-auto text-xs">{JSON.stringify(rawResponse, null, 2)}</pre>
+          // </div> */}
+        
         {loading ? (
           <div className="text-center py-20">
             <p className="text-lg text-muted-foreground">Loading vendors...</p>
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {vendors.map((vendor) => (
-              <Card
-                key={vendor._id}
-                className="hover:shadow-elevated transition-all duration-300 cursor-pointer"
-                onClick={() => navigate(`/vendor/${vendor._id}`)}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <CardTitle className="text-2xl">{vendor.businessName}</CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{vendor.city}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-primary text-primary" />
-                          <span className="font-medium text-foreground">{vendor.rating.toFixed(1)}</span>
-                          <span>({vendor.totalReviews} reviews)</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {vendor.description && (
-                    <p className="text-sm text-muted-foreground">{vendor.description}</p>
-                  )}
-                  <div className="flex flex-wrap gap-2">
-                    {vendor.services.map((service: any, idx: number) => (
-                      <Badge key={idx} variant="outline">
-                        <Package className="h-3 w-3 mr-1" />
-                        {service.name}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-border">
-                    <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span>{vendor.businessPhone}</span>
-                      </div>
-                    </div>
-                    <Button onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/order/${vendor._id}`);
-                    }}>
-                      Schedule Pickup
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <VendorCard key={vendor._id} vendor={vendor} navigate={navigate} />
             ))}
-        </div>)}
+          </div>
+        )}
 
         {/* Empty State */}
         {vendors.length === 0 && (
