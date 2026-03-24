@@ -105,7 +105,7 @@ async function initializeDatabase() {
 }
 
 // Initialize on first request
-app.use(async (req, res, next) => {
+app.use(async (_req, _res, next) => {
   await initializeDatabase();
   next();
 });
