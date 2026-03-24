@@ -90,23 +90,30 @@ app.use(errorHandler);
 
 // Initialize database connection
 let dbConnected = false;
+let dbConnecting = false;
 
 async function initializeDatabase() {
-  if (!dbConnected) {
-    try {
-      await connectDatabase();
-      configureCloudinary();
-      dbConnected = true;
-      console.log('Database connected');
-    } catch (error) {
-      console.error('Database connection error:', error);
-    }
+  if (dbConnected || dbConnecting) return;
+  
+  dbConnecting = true;
+  try {
+    await connectDatabase();
+    configureCloudinary();
+    dbConnected = true;
+    console.log('Database connected');
+  } catch (error) {
+    console.error('Database connection error:', error);
+    dbConnecting = false;
   }
 }
 
 // Initialize on first request
 app.use(async (_req, _res, next) => {
-  await initializeDatabase();
+  try {
+    await initializeDatabase();
+  } catch (error) {
+    console.error('Initialization error:', error);
+  }
   next();
 });
 
