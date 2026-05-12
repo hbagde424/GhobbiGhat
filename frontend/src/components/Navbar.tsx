@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, User, Menu, LogOut } from "lucide-react";
+import { User, Menu, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ModeToggle } from "./mode-toggle";
+import logo from "@/assets/logo.png";
 
 export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,12 +28,18 @@ export const Navbar = () => {
   return (
     <nav className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl bg-gradient-hero bg-clip-text text-transparent">
-              Digital Dhobighat
-            </span>
+        <div className="flex justify-between items-center h-24">
+          <Link to="/" className="flex items-center gap-4">
+            <img 
+              src={logo} 
+              alt="Digital Dhobighat" 
+              className="h-30 w-40 object-contain" 
+            />
+            {/* <div className="flex flex-col">
+              <span className="font-bold text-3xl text-foreground">
+                Digital Dhobighat
+              </span>
+            </div> */}
           </Link>
 
           {/* Desktop Navigation */}

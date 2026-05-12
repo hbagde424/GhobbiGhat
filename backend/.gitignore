@@ -38,3 +38,4 @@ coverage/
 uploads/
 temp/
 .vercel
+.env*.local
